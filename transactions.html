@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - Personal Finance Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="flex-between" style="padding: 1rem 0;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <i class="fas fa-wallet" style="color: white; font-size: 1.5rem;"></i>
+                    <h1 style="color: white; font-size: 1.5rem; font-weight: 700; margin: 0;">Finance Tracker</h1>
+                </div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Dashboard</a>
+                    <a href="transactions.html" class="nav-link active"><i class="fas fa-exchange-alt"></i> Transactions</a>
+                    <a href="budget.html" class="nav-link"><i class="fas fa-chart-pie"></i> Budget</a>
+                    <a href="savings.html" class="nav-link"><i class="fas fa-piggy-bank"></i> Savings</a>
+                    <a href="bills.html" class="nav-link"><i class="fas fa-file-invoice-dollar"></i> Bills</a>
+                    <a href="networth.html" class="nav-link"><i class="fas fa-chart-line"></i> Net Worth</a>
+                    <a href="reports.html" class="nav-link"><i class="fas fa-chart-bar"></i> Reports</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header flex-between">
+            <div>
+                <h2 class="page-title">Income & Expenses</h2>
+                <p class="page-subtitle">Track all your financial transactions</p>
+            </div>
+            <button onclick="showAddTransactionModal()" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Transaction
+            </button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-3 mb-4">
+            <div class="stat-card success">
+                <div class="stat-label">Total Income</div>
+                <div class="stat-value text-success" id="totalIncome">$0.00</div>
+                <div class="text-muted" style="font-size: 0.875rem;">Current month</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-label">Total Expenses</div>
+                <div class="stat-value text-danger" id="totalExpenses">$0.00</div>
+                <div class="text-muted" style="font-size: 0.875rem;">Current month</div>
+            </div>
+            <div class="stat-card" id="netCard">
+                <div class="stat-label">Net Balance</div>
+                <div class="stat-value" id="netBalance">$0.00</div>
+                <div class="text-muted" style="font-size: 0.875rem;">Income - Expenses</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <span><i class="fas fa-filter"></i> Filters</span>
+            </div>
+            <div class="grid grid-4">
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select id="filterType" class="form-select" onchange="filterTransactions()">
+                        <option value="all">All</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="filterCategory" class="form-select" onchange="filterTransactions()">
+                        <option value="all">All Categories</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Month</label>
+                    <select id="filterMonth" class="form-select" onchange="filterTransactions()">
+                        <option value="all">All Months</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Year</label>
+                    <select id="filterYear" class="form-select" onchange="filterTransactions()">
+                        <option value="all">All Years</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spending Trends Chart -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <span><i class="fas fa-chart-line"></i> Spending Trends</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="trendsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <span><i class="fas fa-chart-pie"></i> Category Breakdown</span>
+            </div>
+            <div class="grid grid-2">
+                <div class="chart-container">
+                    <canvas id="categoryPieChart"></canvas>
+                </div>
+                <div id="categoryList"></div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="card mb-4">
+            <div class="card-header flex-between">
+                <span><i class="fas fa-list"></i> Recent Transactions</span>
+                <button onclick="exportDataToCSV('transactions')" class="btn btn-sm btn-outline">
+                    <i class="fas fa-download"></i> Export CSV
+                </button>
+            </div>
+            <div class="table-container">
+                <table id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Payment Method</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsBody">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted" style="padding: 2rem;">
+                                No transactions found. Add your first transaction to get started!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Transaction Modal -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modalTitle">Add Transaction</span>
+            </div>
+            <form id="transactionForm" onsubmit="saveTransaction(event)">
+                <div class="form-group">
+                    <label class="form-label">Type *</label>
+                    <select id="transactionType" class="form-select" required onchange="updateCategoryOptions()">
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select id="transactionCategory" class="form-select" required>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount *</label>
+                    <input type="number" id="transactionAmount" class="form-input" step="0.01" min="0" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date *</label>
+                    <input type="date" id="transactionDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <input type="text" id="transactionDescription" class="form-input" placeholder="Enter description">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Method</label>
+                    <select id="transactionPaymentMethod" class="form-select">
+                        ${PAYMENT_METHODS.map(m => `<option value="${m}">${m}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeTransactionModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        let editingTransactionId = null;
+        let trendsChart = null;
+        let categoryPieChart = null;
+
+        function loadTransactionsPage() {
+            updateSummaryCards();
+            populateFilters();
+            loadTransactionsTable();
+            loadTrendsChart();
+            loadCategoryBreakdown();
+        }
+
+        function updateSummaryCards() {
+            const currentMonth = getCurrentMonth();
+            const currentYear = getCurrentYear();
+
+            const income = getMonthlyIncome(currentMonth, currentYear);
+            const expenses = getMonthlyExpenses(currentMonth, currentYear);
+            const net = income - expenses;
+
+            document.getElementById('totalIncome').textContent = formatCurrency(income);
+            document.getElementById('totalExpenses').textContent = formatCurrency(expenses);
+            document.getElementById('netBalance').textContent = formatCurrency(net);
+
+            const netCard = document.getElementById('netCard');
+            const netBalance = document.getElementById('netBalance');
+
+            if (net > 0) {
+                netCard.classList.add('success');
+                netBalance.classList.add('text-success');
+            } else if (net < 0) {
+                netCard.classList.add('danger');
+                netBalance.classList.add('text-danger');
+            }
+        }
+
+        function populateFilters() {
+            const transactions = getTransactions();
+
+            // Populate categories
+            const categories = new Set();
+            transactions.forEach(t => categories.add(t.category));
+
+            const categoryFilter = document.getElementById('filterCategory');
+            categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+            Array.from(categories).sort().forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                categoryFilter.appendChild(option);
+            });
+
+            // Populate months
+            const monthFilter = document.getElementById('filterMonth');
+            monthFilter.innerHTML = '<option value="all">All Months</option>';
+            for (let i = 0; i < 12; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = getMonthName(i);
+                monthFilter.appendChild(option);
+            }
+            monthFilter.value = getCurrentMonth();
+
+            // Populate years
+            const years = new Set();
+            transactions.forEach(t => {
+                const year = new Date(t.date).getFullYear();
+                years.add(year);
+            });
+            const currentYear = getCurrentYear();
+            years.add(currentYear);
+
+            const yearFilter = document.getElementById('filterYear');
+            yearFilter.innerHTML = '<option value="all">All Years</option>';
+            Array.from(years).sort((a, b) => b - a).forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearFilter.appendChild(option);
+            });
+            yearFilter.value = currentYear;
+        }
+
+        function filterTransactions() {
+            loadTransactionsTable();
+            loadCategoryBreakdown();
+        }
+
+        function loadTransactionsTable() {
+            const transactions = getTransactions();
+            const tbody = document.getElementById('transactionsBody');
+
+            // Apply filters
+            const typeFilter = document.getElementById('filterType').value;
+            const categoryFilter = document.getElementById('filterCategory').value;
+            const monthFilter = document.getElementById('filterMonth').value;
+            const yearFilter = document.getElementById('filterYear').value;
+
+            let filtered = transactions.filter(t => {
+                if (typeFilter !== 'all' && t.type !== typeFilter) return false;
+                if (categoryFilter !== 'all' && t.category !== categoryFilter) return false;
+                if (monthFilter !== 'all' && new Date(t.date).getMonth() != monthFilter) return false;
+                if (yearFilter !== 'all' && new Date(t.date).getFullYear() != yearFilter) return false;
+                return true;
+            });
+
+            // Sort by date (newest first)
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding: 2rem;">No transactions found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(t => `
+                <tr>
+                    <td>${formatDate(t.date)}</td>
+                    <td><span class="badge ${t.type === 'income' ? 'badge-success' : 'badge-danger'}">${t.type}</span></td>
+                    <td>${t.category}</td>
+                    <td>${t.description || '-'}</td>
+                    <td>${t.paymentMethod || '-'}</td>
+                    <td class="${t.type === 'income' ? 'text-success' : 'text-danger'}" style="font-weight: 600;">
+                        ${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}
+                    </td>
+                    <td>
+                        <button class="btn-icon" onclick="editTransaction('${t.id}')" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon" onclick="deleteTransactionConfirm('${t.id}')" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadTrendsChart() {
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            const currentYear = getCurrentYear();
+            const currentMonth = getCurrentMonth();
+
+            const labels = [];
+            const incomeData = [];
+            const expenseData = [];
+
+            for (let i = 11; i >= 0; i--) {
+                let month = currentMonth - i;
+                let year = currentYear;
+
+                if (month < 0) {
+                    month += 12;
+                    year -= 1;
+                }
+
+                labels.push(getMonthName(month).substring(0, 3));
+                incomeData.push(getMonthlyIncome(month, year));
+                expenseData.push(getMonthlyExpenses(month, year));
+            }
+
+            if (trendsChart) {
+                trendsChart.destroy();
+            }
+
+            trendsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: incomeData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Expenses',
+                            data: expenseData,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadCategoryBreakdown() {
+            const transactions = getTransactions();
+            const monthFilter = document.getElementById('filterMonth').value;
+            const yearFilter = document.getElementById('filterYear').value;
+
+            // Filter expenses
+            const expenses = transactions.filter(t => {
+                if (t.type !== 'expense') return false;
+                if (monthFilter !== 'all' && new Date(t.date).getMonth() != monthFilter) return false;
+                if (yearFilter !== 'all' && new Date(t.date).getFullYear() != yearFilter) return false;
+                return true;
+            });
+
+            // Calculate category totals
+            const categoryTotals = {};
+            expenses.forEach(t => {
+                categoryTotals[t.category] = (categoryTotals[t.category] || 0) + parseFloat(t.amount);
+            });
+
+            const sortedCategories = Object.entries(categoryTotals)
+                .sort((a, b) => b[1] - a[1]);
+
+            // Update pie chart
+            const ctx = document.getElementById('categoryPieChart').getContext('2d');
+
+            if (categoryPieChart) {
+                categoryPieChart.destroy();
+            }
+
+            if (sortedCategories.length === 0) {
+                ctx.canvas.parentElement.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i class="fas fa-chart-pie"></i></div><div class="empty-state-title">No expense data</div></div>';
+            } else {
+                categoryPieChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: sortedCategories.map(c => c[0]),
+                        datasets: [{
+                            data: sortedCategories.map(c => c[1]),
+                            backgroundColor: [
+                                '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
+                                '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
+                                '#06b6d4', '#84cc16'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = formatCurrency(context.parsed);
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                        return `${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Update category list
+            const categoryList = document.getElementById('categoryList');
+            const total = sortedCategories.reduce((sum, c) => sum + c[1], 0);
+
+            categoryList.innerHTML = sortedCategories.map(([category, amount]) => {
+                const percentage = ((amount / total) * 100).toFixed(1);
+                return `
+                    <div class="flex-between" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                        <span style="font-weight: 600;">${category}</span>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 700;">${formatCurrency(amount)}</div>
+                            <div class="text-muted" style="font-size: 0.875rem;">${percentage}%</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showAddTransactionModal() {
+            editingTransactionId = null;
+            document.getElementById('modalTitle').textContent = 'Add Transaction';
+            document.getElementById('transactionForm').reset();
+            document.getElementById('transactionDate').valueAsDate = new Date();
+            updateCategoryOptions();
+            document.getElementById('transactionModal').classList.add('active');
+        }
+
+        function closeTransactionModal() {
+            document.getElementById('transactionModal').classList.remove('active');
+        }
+
+        function updateCategoryOptions() {
+            const type = document.getElementById('transactionType').value;
+            const categorySelect = document.getElementById('transactionCategory');
+
+            const categories = type === 'income' ? DEFAULT_INCOME_CATEGORIES : DEFAULT_EXPENSE_CATEGORIES;
+
+            categorySelect.innerHTML = categories.map(cat =>
+                `<option value="${cat}">${cat}</option>`
+            ).join('');
+        }
+
+        function saveTransaction(event) {
+            event.preventDefault();
+
+            const transaction = {
+                type: document.getElementById('transactionType').value,
+                category: document.getElementById('transactionCategory').value,
+                amount: parseFloat(document.getElementById('transactionAmount').value),
+                date: document.getElementById('transactionDate').value,
+                description: document.getElementById('transactionDescription').value,
+                paymentMethod: document.getElementById('transactionPaymentMethod').value
+            };
+
+            if (editingTransactionId) {
+                updateTransaction(editingTransactionId, transaction);
+            } else {
+                addTransaction(transaction);
+            }
+
+            closeTransactionModal();
+            loadTransactionsPage();
+        }
+
+        function editTransaction(id) {
+            const transactions = getTransactions();
+            const transaction = transactions.find(t => t.id === id);
+
+            if (!transaction) return;
+
+            editingTransactionId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Transaction';
+            document.getElementById('transactionType').value = transaction.type;
+            updateCategoryOptions();
+            document.getElementById('transactionCategory').value = transaction.category;
+            document.getElementById('transactionAmount').value = transaction.amount;
+            document.getElementById('transactionDate').value = transaction.date;
+            document.getElementById('transactionDescription').value = transaction.description || '';
+            document.getElementById('transactionPaymentMethod').value = transaction.paymentMethod || 'Cash';
+
+            document.getElementById('transactionModal').classList.add('active');
+        }
+
+        function deleteTransactionConfirm(id) {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                deleteTransaction(id);
+                loadTransactionsPage();
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('transactionModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTransactionModal();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTransactionsPage();
+        });
+    </script>
+</body>
+</html>

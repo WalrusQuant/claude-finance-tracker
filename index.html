@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Personal Finance Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="flex-between" style="padding: 1rem 0;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <i class="fas fa-wallet" style="color: white; font-size: 1.5rem;"></i>
+                    <h1 style="color: white; font-size: 1.5rem; font-weight: 700; margin: 0;">Finance Tracker</h1>
+                </div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <a href="index.html" class="nav-link active"><i class="fas fa-home"></i> Dashboard</a>
+                    <a href="transactions.html" class="nav-link"><i class="fas fa-exchange-alt"></i> Transactions</a>
+                    <a href="budget.html" class="nav-link"><i class="fas fa-chart-pie"></i> Budget</a>
+                    <a href="savings.html" class="nav-link"><i class="fas fa-piggy-bank"></i> Savings</a>
+                    <a href="bills.html" class="nav-link"><i class="fas fa-file-invoice-dollar"></i> Bills</a>
+                    <a href="networth.html" class="nav-link"><i class="fas fa-chart-line"></i> Net Worth</a>
+                    <a href="reports.html" class="nav-link"><i class="fas fa-chart-bar"></i> Reports</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2 class="page-title">Financial Dashboard</h2>
+            <p class="page-subtitle">Overview of your financial health</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-4 mb-4">
+            <div class="stat-card success">
+                <div class="stat-label">Monthly Income</div>
+                <div class="stat-value text-success" id="monthlyIncome">$0.00</div>
+                <div class="text-muted" style="font-size: 0.875rem;">Current month</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-label">Monthly Expenses</div>
+                <div class="stat-value text-danger" id="monthlyExpenses">$0.00</div>
+                <div class="text-muted" style="font-size: 0.875rem;">Current month</div>
+            </div>
+            <div class="stat-card" id="netIncomeCard">
+                <div class="stat-label">Net Income</div>
+                <div class="stat-value" id="netIncome">$0.00</div>
+                <div class="text-muted" style="font-size: 0.875rem;">Income - Expenses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Net Worth</div>
+                <div class="stat-value text-primary" id="netWorth">$0.00</div>
+                <div class="text-muted" style="font-size: 0.875rem;">Assets - Liabilities</div>
+            </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div id="alertsContainer" class="mb-4"></div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-2 mb-4">
+            <!-- Income vs Expenses Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <span><i class="fas fa-chart-bar"></i> Income vs Expenses</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Category Breakdown Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <span><i class="fas fa-chart-pie"></i> Expense Categories</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row -->
+        <div class="grid grid-2 mb-4">
+            <!-- Upcoming Bills -->
+            <div class="card">
+                <div class="card-header">
+                    <span><i class="fas fa-calendar-alt"></i> Upcoming Bills</span>
+                    <a href="bills.html" class="btn btn-sm btn-outline">View All</a>
+                </div>
+                <div id="upcomingBillsList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-file-invoice"></i></div>
+                        <div class="empty-state-title">No upcoming bills</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Savings Goals Progress -->
+            <div class="card">
+                <div class="card-header">
+                    <span><i class="fas fa-bullseye"></i> Savings Goals</span>
+                    <a href="savings.html" class="btn btn-sm btn-outline">View All</a>
+                </div>
+                <div id="savingsGoalsList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-piggy-bank"></i></div>
+                        <div class="empty-state-title">No savings goals</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Overview -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <span><i class="fas fa-wallet"></i> Budget Overview</span>
+                <a href="budget.html" class="btn btn-sm btn-outline">Manage Budget</a>
+            </div>
+            <div id="budgetOverview">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas fa-calculator"></i></div>
+                    <div class="empty-state-title">No budgets set</div>
+                    <p>Set up your monthly budgets to track spending</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <span><i class="fas fa-bolt"></i> Quick Actions</span>
+            </div>
+            <div class="flex gap-2" style="flex-wrap: wrap;">
+                <a href="transactions.html" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Transaction
+                </a>
+                <a href="bills.html" class="btn btn-success">
+                    <i class="fas fa-check"></i> Pay Bill
+                </a>
+                <a href="savings.html" class="btn btn-outline">
+                    <i class="fas fa-piggy-bank"></i> Update Savings
+                </a>
+                <button onclick="addSampleData()" class="btn btn-secondary">
+                    <i class="fas fa-database"></i> Load Sample Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        // Dashboard specific JavaScript
+        let incomeExpenseChart = null;
+        let categoryChart = null;
+
+        function loadDashboard() {
+            const currentMonth = getCurrentMonth();
+            const currentYear = getCurrentYear();
+
+            // Calculate stats
+            const income = getMonthlyIncome(currentMonth, currentYear);
+            const expenses = getMonthlyExpenses(currentMonth, currentYear);
+            const netIncomeValue = income - expenses;
+            const netWorthValue = calculateNetWorth();
+
+            // Update stat cards
+            document.getElementById('monthlyIncome').textContent = formatCurrency(income);
+            document.getElementById('monthlyExpenses').textContent = formatCurrency(expenses);
+            document.getElementById('netIncome').textContent = formatCurrency(netIncomeValue);
+            document.getElementById('netWorth').textContent = formatCurrency(netWorthValue);
+
+            // Update net income card color
+            const netIncomeCard = document.getElementById('netIncomeCard');
+            if (netIncomeValue > 0) {
+                netIncomeCard.classList.add('success');
+                document.getElementById('netIncome').classList.add('text-success');
+            } else if (netIncomeValue < 0) {
+                netIncomeCard.classList.add('danger');
+                document.getElementById('netIncome').classList.add('text-danger');
+            }
+
+            // Load alerts
+            loadAlerts();
+
+            // Load charts
+            loadIncomeExpenseChart();
+            loadCategoryChart();
+
+            // Load upcoming bills
+            loadUpcomingBills();
+
+            // Load savings goals
+            loadSavingsGoals();
+
+            // Load budget overview
+            loadBudgetOverview();
+        }
+
+        function loadAlerts() {
+            const alertsContainer = document.getElementById('alertsContainer');
+            alertsContainer.innerHTML = '';
+
+            // Check for overdue bills
+            const overdueBills = getOverdueBills();
+            if (overdueBills.length > 0) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Overdue Bills!</strong> You have ${overdueBills.length} overdue bill(s).
+                        <a href="bills.html" style="text-decoration: underline; font-weight: 600;">View bills</a>
+                    </div>
+                `;
+                alertsContainer.appendChild(alert);
+            }
+
+            // Check for upcoming bills
+            const upcomingBills = getUpcomingBills(7);
+            if (upcomingBills.length > 0) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-warning';
+                alert.innerHTML = `
+                    <i class="fas fa-calendar-check"></i>
+                    <div>
+                        <strong>Bills Due Soon!</strong> You have ${upcomingBills.length} bill(s) due in the next 7 days.
+                    </div>
+                `;
+                alertsContainer.appendChild(alert);
+            }
+
+            // Check for budget warnings
+            const budgets = getBudgets();
+            const currentMonth = getCurrentMonth();
+            const currentYear = getCurrentYear();
+            let overBudgetCount = 0;
+
+            Object.keys(budgets).forEach(category => {
+                const spent = getCategorySpending(category, currentMonth, currentYear);
+                const budget = budgets[category];
+                if (spent > budget) {
+                    overBudgetCount++;
+                }
+            });
+
+            if (overBudgetCount > 0) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-warning';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>
+                        <strong>Budget Alert!</strong> You're over budget in ${overBudgetCount} categor${overBudgetCount === 1 ? 'y' : 'ies'}.
+                        <a href="budget.html" style="text-decoration: underline; font-weight: 600;">View budget</a>
+                    </div>
+                `;
+                alertsContainer.appendChild(alert);
+            }
+        }
+
+        function loadIncomeExpenseChart() {
+            const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
+            const currentYear = getCurrentYear();
+            const currentMonth = getCurrentMonth();
+
+            // Get last 6 months data
+            const labels = [];
+            const incomeData = [];
+            const expenseData = [];
+
+            for (let i = 5; i >= 0; i--) {
+                let month = currentMonth - i;
+                let year = currentYear;
+
+                if (month < 0) {
+                    month += 12;
+                    year -= 1;
+                }
+
+                labels.push(getMonthName(month).substring(0, 3));
+                incomeData.push(getMonthlyIncome(month, year));
+                expenseData.push(getMonthlyExpenses(month, year));
+            }
+
+            if (incomeExpenseChart) {
+                incomeExpenseChart.destroy();
+            }
+
+            incomeExpenseChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: incomeData,
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Expenses',
+                            data: expenseData,
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadCategoryChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const currentMonth = getCurrentMonth();
+            const currentYear = getCurrentYear();
+            const transactions = getTransactions();
+
+            // Calculate category totals
+            const categoryTotals = {};
+            transactions.forEach(t => {
+                if (t.type === 'expense') {
+                    const date = new Date(t.date);
+                    if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+                        categoryTotals[t.category] = (categoryTotals[t.category] || 0) + parseFloat(t.amount);
+                    }
+                }
+            });
+
+            const labels = Object.keys(categoryTotals);
+            const data = Object.values(categoryTotals);
+
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+
+            if (labels.length === 0) {
+                // Show empty state
+                ctx.canvas.parentElement.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i class="fas fa-chart-pie"></i></div><div class="empty-state-title">No expense data</div></div>';
+                return;
+            }
+
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
+                            '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = formatCurrency(context.parsed);
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadUpcomingBills() {
+            const upcomingBills = getUpcomingBills(14);
+            const container = document.getElementById('upcomingBillsList');
+
+            if (upcomingBills.length === 0) {
+                return; // Keep empty state
+            }
+
+            container.innerHTML = '';
+            upcomingBills.slice(0, 5).forEach(bill => {
+                const daysUntil = Math.ceil((new Date(bill.dueDate) - new Date()) / (1000 * 60 * 60 * 24));
+                const item = document.createElement('div');
+                item.className = 'flex-between';
+                item.style.padding = '0.75rem 0';
+                item.style.borderBottom = '1px solid var(--border-color)';
+                item.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600;">${bill.name}</div>
+                        <div class="text-muted" style="font-size: 0.875rem;">
+                            Due ${formatDate(bill.dueDate)} (${daysUntil} day${daysUntil === 1 ? '' : 's'})
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 700; color: var(--danger-color);">${formatCurrency(bill.amount)}</div>
+                        ${bill.autoPay ? '<span class="badge badge-info">Auto-pay</span>' : ''}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function loadSavingsGoals() {
+            const goals = getGoals().filter(g => !g.completed);
+            const container = document.getElementById('savingsGoalsList');
+
+            if (goals.length === 0) {
+                return; // Keep empty state
+            }
+
+            container.innerHTML = '';
+            goals.slice(0, 3).forEach(goal => {
+                const progress = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+                const item = document.createElement('div');
+                item.style.marginBottom = '1.5rem';
+                item.innerHTML = `
+                    <div class="flex-between mb-1">
+                        <span style="font-weight: 600;">${goal.name}</span>
+                        <span class="text-muted">${formatCurrency(goal.currentAmount)} / ${formatCurrency(goal.targetAmount)}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%">
+                            ${progress > 15 ? progress.toFixed(0) + '%' : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function loadBudgetOverview() {
+            const budgets = getBudgets();
+            const container = document.getElementById('budgetOverview');
+            const currentMonth = getCurrentMonth();
+            const currentYear = getCurrentYear();
+
+            const budgetEntries = Object.entries(budgets);
+            if (budgetEntries.length === 0) {
+                return; // Keep empty state
+            }
+
+            container.innerHTML = '';
+            budgetEntries.slice(0, 5).forEach(([category, budget]) => {
+                const spent = getCategorySpending(category, currentMonth, currentYear);
+                const percentage = Math.min((spent / budget) * 100, 100);
+                let progressClass = '';
+
+                if (percentage >= 100) {
+                    progressClass = 'danger';
+                } else if (percentage >= 80) {
+                    progressClass = 'warning';
+                }
+
+                const item = document.createElement('div');
+                item.style.marginBottom = '1.5rem';
+                item.innerHTML = `
+                    <div class="flex-between mb-1">
+                        <span style="font-weight: 600;">${category}</span>
+                        <span class="text-muted">${formatCurrency(spent)} / ${formatCurrency(budget)}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${progressClass}" style="width: ${percentage}%">
+                            ${percentage > 15 ? percentage.toFixed(0) + '%' : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>
