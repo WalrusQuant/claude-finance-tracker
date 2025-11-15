@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Goals - Personal Finance Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="flex-between" style="padding: 1rem 0;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <i class="fas fa-wallet" style="color: white; font-size: 1.5rem;"></i>
+                    <h1 style="color: white; font-size: 1.5rem; font-weight: 700; margin: 0;">Finance Tracker</h1>
+                </div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Dashboard</a>
+                    <a href="transactions.html" class="nav-link"><i class="fas fa-exchange-alt"></i> Transactions</a>
+                    <a href="budget.html" class="nav-link"><i class="fas fa-chart-pie"></i> Budget</a>
+                    <a href="savings.html" class="nav-link active"><i class="fas fa-piggy-bank"></i> Savings</a>
+                    <a href="bills.html" class="nav-link"><i class="fas fa-file-invoice-dollar"></i> Bills</a>
+                    <a href="networth.html" class="nav-link"><i class="fas fa-chart-line"></i> Net Worth</a>
+                    <a href="reports.html" class="nav-link"><i class="fas fa-chart-bar"></i> Reports</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header flex-between">
+            <div>
+                <h2 class="page-title">Savings Goals</h2>
+                <p class="page-subtitle">Track your savings progress and achieve your financial goals</p>
+            </div>
+            <button onclick="showAddGoalModal()" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Goal
+            </button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-4 mb-4">
+            <div class="stat-card">
+                <div class="stat-label">Active Goals</div>
+                <div class="stat-value text-primary" id="activeGoals">0</div>
+                <div class="text-muted" style="font-size: 0.875rem;">In progress</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Target</div>
+                <div class="stat-value text-primary" id="totalTarget">$0.00</div>
+                <div class="text-muted" style="font-size: 0.875rem;">All goals</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-label">Total Saved</div>
+                <div class="stat-value text-success" id="totalSaved">$0.00</div>
+                <div class="text-muted" style="font-size: 0.875rem;">Current amount</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Completed Goals</div>
+                <div class="stat-value text-success" id="completedGoals">0</div>
+                <div class="text-muted" style="font-size: 0.875rem;">Achieved</div>
+            </div>
+        </div>
+
+        <!-- Active Goals -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <span><i class="fas fa-bullseye"></i> Active Goals</span>
+            </div>
+            <div id="activeGoalsList">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas fa-piggy-bank"></i></div>
+                    <div class="empty-state-title">No active goals</div>
+                    <p>Create your first savings goal to start tracking your progress</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completed Goals -->
+        <div class="card mb-4" id="completedGoalsSection" style="display: none;">
+            <div class="card-header">
+                <span><i class="fas fa-check-circle"></i> Completed Goals</span>
+            </div>
+            <div id="completedGoalsList"></div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Goal Modal -->
+    <div id="goalModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modalTitle">Create Savings Goal</span>
+            </div>
+            <form id="goalForm" onsubmit="saveGoal(event)">
+                <div class="form-group">
+                    <label class="form-label">Goal Name *</label>
+                    <input type="text" id="goalName" class="form-input" required placeholder="e.g., Emergency Fund, Vacation, New Car">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Target Amount *</label>
+                    <input type="number" id="goalTarget" class="form-input" step="0.01" min="0" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Amount</label>
+                    <input type="number" id="goalCurrent" class="form-input" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Target Date</label>
+                    <input type="date" id="goalDate" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="goalDescription" class="form-textarea" placeholder="What are you saving for?"></textarea>
+                </div>
+                <div id="savingsCalculator" class="alert alert-info" style="display: none;">
+                    <i class="fas fa-calculator"></i>
+                    <div id="calculatorText"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeGoalModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Goal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Progress Modal -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="updateModalTitle">Update Progress</span>
+            </div>
+            <form id="updateForm" onsubmit="saveProgress(event)">
+                <div class="form-group">
+                    <label class="form-label">Add Amount</label>
+                    <input type="number" id="updateAmount" class="form-input" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Or Set Total Amount</label>
+                    <input type="number" id="updateTotal" class="form-input" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>Enter an amount to add to your current savings, or set the total amount directly.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        let editingGoalId = null;
+        let updatingGoalId = null;
+
+        function loadSavingsPage() {
+            updateSummaryCards();
+            loadActiveGoals();
+            loadCompletedGoals();
+        }
+
+        function updateSummaryCards() {
+            const goals = getGoals();
+            const activeGoals = goals.filter(g => !g.completed);
+            const completedGoals = goals.filter(g => g.completed);
+
+            const totalTarget = activeGoals.reduce((sum, g) => sum + parseFloat(g.targetAmount), 0);
+            const totalSaved = activeGoals.reduce((sum, g) => sum + parseFloat(g.currentAmount || 0), 0);
+
+            document.getElementById('activeGoals').textContent = activeGoals.length;
+            document.getElementById('totalTarget').textContent = formatCurrency(totalTarget);
+            document.getElementById('totalSaved').textContent = formatCurrency(totalSaved);
+            document.getElementById('completedGoals').textContent = completedGoals.length;
+        }
+
+        function loadActiveGoals() {
+            const goals = getGoals().filter(g => !g.completed);
+            const container = document.getElementById('activeGoalsList');
+
+            if (goals.length === 0) {
+                return; // Keep empty state
+            }
+
+            container.innerHTML = '';
+
+            goals.forEach(goal => {
+                const progress = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+                const remaining = goal.targetAmount - goal.currentAmount;
+
+                // Calculate monthly savings needed
+                let monthlyNeeded = 0;
+                let daysRemaining = 0;
+                if (goal.targetDate) {
+                    const today = new Date();
+                    const targetDate = new Date(goal.targetDate);
+                    daysRemaining = Math.max(0, Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24)));
+                    const monthsRemaining = Math.max(1, daysRemaining / 30);
+                    monthlyNeeded = remaining / monthsRemaining;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'card';
+                item.style.marginBottom = '1rem';
+                item.innerHTML = `
+                    <div class="flex-between mb-3">
+                        <div>
+                            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">
+                                <i class="fas fa-bullseye" style="color: var(--primary-color);"></i>
+                                ${goal.name}
+                            </h3>
+                            ${goal.description ? `<p class="text-muted" style="font-size: 0.875rem; margin: 0;">${goal.description}</p>` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.75rem; font-weight: 700; color: var(--success-color);">
+                                ${formatCurrency(goal.currentAmount)}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.875rem;">of ${formatCurrency(goal.targetAmount)}</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar mb-3">
+                        <div class="progress-fill" style="width: ${progress}%">
+                            ${progress > 15 ? progress.toFixed(0) + '%' : ''}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-3 mb-3" style="gap: 1rem;">
+                        <div style="text-align: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">
+                            <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Remaining</div>
+                            <div style="font-weight: 700; color: var(--primary-color);">${formatCurrency(remaining)}</div>
+                        </div>
+                        ${goal.targetDate ? `
+                        <div style="text-align: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">
+                            <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Target Date</div>
+                            <div style="font-weight: 700;">${formatDate(goal.targetDate)}</div>
+                        </div>
+                        <div style="text-align: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">
+                            <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Monthly Needed</div>
+                            <div style="font-weight: 700; color: ${monthlyNeeded > 0 ? 'var(--warning-color)' : 'var(--success-color)'};">
+                                ${monthlyNeeded > 0 ? formatCurrency(monthlyNeeded) : 'Goal Met!'}
+                            </div>
+                        </div>
+                        ` : '<div></div><div></div>'}
+                    </div>
+
+                    <div class="flex gap-2" style="flex-wrap: wrap;">
+                        <button class="btn btn-success" onclick="showUpdateModal('${goal.id}')">
+                            <i class="fas fa-plus"></i> Add Contribution
+                        </button>
+                        <button class="btn btn-outline" onclick="editGoal('${goal.id}')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        ${progress >= 100 ? `
+                        <button class="btn btn-primary" onclick="markGoalComplete('${goal.id}')">
+                            <i class="fas fa-check"></i> Mark Complete
+                        </button>
+                        ` : ''}
+                        <button class="btn btn-danger" onclick="deleteGoalConfirm('${goal.id}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function loadCompletedGoals() {
+            const goals = getGoals().filter(g => g.completed);
+            const section = document.getElementById('completedGoalsSection');
+            const container = document.getElementById('completedGoalsList');
+
+            if (goals.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            container.innerHTML = '';
+
+            goals.forEach(goal => {
+                const item = document.createElement('div');
+                item.className = 'flex-between';
+                item.style.padding = '1rem';
+                item.style.background = '#f0fdf4';
+                item.style.borderRadius = '0.5rem';
+                item.style.marginBottom = '0.75rem';
+                item.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600; color: var(--success-color);">
+                            <i class="fas fa-check-circle"></i> ${goal.name}
+                        </div>
+                        <div class="text-muted" style="font-size: 0.875rem;">
+                            Goal: ${formatCurrency(goal.targetAmount)} • Achieved: ${formatCurrency(goal.currentAmount)}
+                        </div>
+                    </div>
+                    <button class="btn-icon" onclick="deleteGoalConfirm('${goal.id}')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function showAddGoalModal() {
+            editingGoalId = null;
+            document.getElementById('modalTitle').textContent = 'Create Savings Goal';
+            document.getElementById('goalForm').reset();
+            document.getElementById('savingsCalculator').style.display = 'none';
+            document.getElementById('goalModal').classList.add('active');
+        }
+
+        function closeGoalModal() {
+            document.getElementById('goalModal').classList.remove('active');
+        }
+
+        function saveGoal(event) {
+            event.preventDefault();
+
+            const goal = {
+                name: document.getElementById('goalName').value,
+                targetAmount: parseFloat(document.getElementById('goalTarget').value),
+                currentAmount: parseFloat(document.getElementById('goalCurrent').value) || 0,
+                targetDate: document.getElementById('goalDate').value,
+                description: document.getElementById('goalDescription').value
+            };
+
+            if (editingGoalId) {
+                updateGoal(editingGoalId, goal);
+            } else {
+                addGoal(goal);
+            }
+
+            closeGoalModal();
+            loadSavingsPage();
+        }
+
+        function editGoal(id) {
+            const goals = getGoals();
+            const goal = goals.find(g => g.id === id);
+
+            if (!goal) return;
+
+            editingGoalId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Savings Goal';
+            document.getElementById('goalName').value = goal.name;
+            document.getElementById('goalTarget').value = goal.targetAmount;
+            document.getElementById('goalCurrent').value = goal.currentAmount;
+            document.getElementById('goalDate').value = goal.targetDate || '';
+            document.getElementById('goalDescription').value = goal.description || '';
+
+            document.getElementById('goalModal').classList.add('active');
+        }
+
+        function deleteGoalConfirm(id) {
+            if (confirm('Are you sure you want to delete this savings goal?')) {
+                deleteGoal(id);
+                loadSavingsPage();
+            }
+        }
+
+        function showUpdateModal(id) {
+            updatingGoalId = id;
+            const goals = getGoals();
+            const goal = goals.find(g => g.id === id);
+
+            document.getElementById('updateModalTitle').textContent = `Update ${goal.name}`;
+            document.getElementById('updateForm').reset();
+            document.getElementById('updateModal').classList.add('active');
+        }
+
+        function closeUpdateModal() {
+            document.getElementById('updateModal').classList.remove('active');
+        }
+
+        function saveProgress(event) {
+            event.preventDefault();
+
+            const addAmount = parseFloat(document.getElementById('updateAmount').value) || 0;
+            const totalAmount = parseFloat(document.getElementById('updateTotal').value);
+
+            const goals = getGoals();
+            const goal = goals.find(g => g.id === updatingGoalId);
+
+            if (!goal) return;
+
+            let newAmount;
+            if (totalAmount && totalAmount > 0) {
+                newAmount = totalAmount;
+            } else {
+                newAmount = parseFloat(goal.currentAmount) + addAmount;
+            }
+
+            updateGoal(updatingGoalId, { currentAmount: newAmount });
+
+            // Check if goal is now complete
+            if (newAmount >= goal.targetAmount) {
+                if (confirm('Congratulations! You\'ve reached your goal! Mark it as complete?')) {
+                    updateGoal(updatingGoalId, { completed: true });
+                    celebrateGoal();
+                }
+            }
+
+            closeUpdateModal();
+            loadSavingsPage();
+        }
+
+        function markGoalComplete(id) {
+            if (confirm('Mark this goal as complete?')) {
+                updateGoal(id, { completed: true });
+                celebrateGoal();
+                loadSavingsPage();
+            }
+        }
+
+        function celebrateGoal() {
+            // Simple celebration effect
+            const container = document.querySelector('.container');
+            const celebration = document.createElement('div');
+            celebration.innerHTML = `
+                <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                     background: white; padding: 3rem; border-radius: 1rem; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                     text-align: center; z-index: 2000; animation: celebrate 0.5s ease 3;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
+                    <h2 style="font-size: 2rem; font-weight: 700; color: var(--success-color); margin-bottom: 0.5rem;">
+                        Congratulations!
+                    </h2>
+                    <p style="color: #6b7280; font-size: 1.125rem;">You've achieved your savings goal!</p>
+                </div>
+            `;
+            document.body.appendChild(celebration);
+
+            setTimeout(() => {
+                celebration.remove();
+            }, 2000);
+        }
+
+        // Calculate monthly savings needed when date/amounts change
+        document.getElementById('goalTarget')?.addEventListener('input', calculateMonthlySavings);
+        document.getElementById('goalCurrent')?.addEventListener('input', calculateMonthlySavings);
+        document.getElementById('goalDate')?.addEventListener('change', calculateMonthlySavings);
+
+        function calculateMonthlySavings() {
+            const target = parseFloat(document.getElementById('goalTarget').value) || 0;
+            const current = parseFloat(document.getElementById('goalCurrent').value) || 0;
+            const dateStr = document.getElementById('goalDate').value;
+
+            const calculator = document.getElementById('savingsCalculator');
+
+            if (!dateStr || target <= current) {
+                calculator.style.display = 'none';
+                return;
+            }
+
+            const today = new Date();
+            const targetDate = new Date(dateStr);
+            const daysRemaining = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+
+            if (daysRemaining <= 0) {
+                calculator.style.display = 'none';
+                return;
+            }
+
+            const monthsRemaining = Math.max(1, daysRemaining / 30);
+            const remaining = target - current;
+            const monthlyNeeded = remaining / monthsRemaining;
+
+            calculator.style.display = 'flex';
+            document.getElementById('calculatorText').innerHTML = `
+                <strong>Savings Plan:</strong> To reach your goal by ${formatDate(dateStr)},
+                you need to save approximately ${formatCurrency(monthlyNeeded)} per month
+                (${daysRemaining} days remaining).
+            `;
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('goalModal').addEventListener('click', function(e) {
+            if (e.target === this) closeGoalModal();
+        });
+
+        document.getElementById('updateModal').addEventListener('click', function(e) {
+            if (e.target === this) closeUpdateModal();
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavingsPage();
+        });
+    </script>
+</body>
+</html>
